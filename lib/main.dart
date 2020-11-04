@@ -10,116 +10,97 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'ChatApp',
       theme: ThemeData(
         primaryColor: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyAuthPage(),
+      home: LoginPage(),
     );
   }
 }
 
-class MyAuthPage extends StatefulWidget {
+class LoginPage extends StatefulWidget {
   @override
-  _MyAuthPageState createState() => _MyAuthPageState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _MyAuthPageState extends State<MyAuthPage> {
-
-  String newUserEmail = "";
-  String newUserPassword = "";
-
-  String loginUserEmail = "";
-  String loginUserPassword = "";
+class _LoginPageState extends State<LoginPage> {
 
   String infoText = "";
+  String email = "";
+  String password = "";
 
-  @override
+  @overrideここ途中
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            TextFormField(
-              decoration: InputDecoration(labelText: "メールアドレス"),
-              onChanged: (String value) {
-                setState(() {
-                  newUserEmail = value;
-                });
+            RaisedButton(
+              child: Text('ログイン'),
+              onPressed: () async {
+                await Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) {
+                    return ChatPage();
+                  }),
+                );
               },
             ),
-            TextFormField(
-              decoration: InputDecoration(labelText: "パスワード"),
-              obscureText: true,
-              onChanged: (String value) {
-                setState(() {
-                  newUserPassword = value;
-                });
-              },
-            ),
-          RaisedButton(
-            onPressed: () async {
-              try {
-                final FirebaseAuth auth = FirebaseAuth.instance;
-                final AuthResult result =
-                    await auth.createUserWithEmailAndPassword(
-                      email: newUserEmail,
-                      password: newUserPassword,
-                    );
-                final FirebaseUser user = result.user;
-                setState(() {
-                  infoText = "登録OK:${user.email}";
-                });
-              } catch (e) {
-                setState(() {
-                  infoText = "登録NG:${e.message}";
-                });
-              }
-            },
-            child: Text("ユーザー登録"),
-          ),
-          Container(height: 32),
-          TextFormField(
-              decoration: InputDecoration(labelText: "メールアドレス"),
-              onChanged: (String value) {
-                setState(() {
-                  loginUserEmail = value;
-                });
-              },
-            ),
-          TextFormField(
-              decoration: InputDecoration(labelText: "パスワード"),
-              obscureText: true,
-              onChanged: (String value) {
-                setState(() {
-                  loginUserPassword = value;
-                });
-              },
-            ),
-          RaisedButton(
-            onPressed: () async {
-              try {
-                final FirebaseAuth auth = FirebaseAuth.instance;
-                final AuthResult result =
-                    await auth.signInWithEmailAndPassword(
-                      email: loginUserEmail,
-                      password: loginUserPassword,
-                    );
-                final FirebaseUser user = result.user;
-                setState(() {
-                  infoText = "ログインOK:${user.email}";
-                });
-              } catch (e) {
-                setState(() {
-                  infoText = "ログインNG:${e.message}";
-                });
-              }
-            },
-            child: Text("ログイン"),
-          ),
-          Text(infoText)
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class ChatPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('チャット'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () async {
+              await Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) {
+                  return LoginPage();
+                }),
+              );
+            },
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) {
+              return AddPostPage();
+            }),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class AddPostPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('チャット投稿'),
+      ),
+      body: Center(
+        child: RaisedButton(
+          child: Text('戻る'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
       ),
     );
