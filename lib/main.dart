@@ -29,6 +29,10 @@ class _MyAuthPageState extends State<MyAuthPage> {
 
   String newUserEmail = "";
   String newUserPassword = "";
+
+  String loginUserEmail = "";
+  String loginUserPassword = "";
+
   String infoText = "";
 
   @override
@@ -74,6 +78,45 @@ class _MyAuthPageState extends State<MyAuthPage> {
               }
             },
             child: Text("ユーザー登録"),
+          ),
+          Container(height: 32),
+          TextFormField(
+              decoration: InputDecoration(labelText: "メールアドレス"),
+              onChanged: (String value) {
+                setState(() {
+                  loginUserEmail = value;
+                });
+              },
+            ),
+          TextFormField(
+              decoration: InputDecoration(labelText: "パスワード"),
+              obscureText: true,
+              onChanged: (String value) {
+                setState(() {
+                  loginUserPassword = value;
+                });
+              },
+            ),
+          RaisedButton(
+            onPressed: () async {
+              try {
+                final FirebaseAuth auth = FirebaseAuth.instance;
+                final AuthResult result =
+                    await auth.signInWithEmailAndPassword(
+                      email: loginUserEmail,
+                      password: loginUserPassword,
+                    );
+                final FirebaseUser user = result.user;
+                setState(() {
+                  infoText = "ログインOK:${user.email}";
+                });
+              } catch (e) {
+                setState(() {
+                  infoText = "ログインNG:${e.message}";
+                });
+              }
+            },
+            child: Text("ログイン"),
           ),
           Text(infoText)
           ],
