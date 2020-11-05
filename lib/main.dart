@@ -31,31 +31,101 @@ class _LoginPageState extends State<LoginPage> {
   String email = "";
   String password = "";
 
-  @overrideここ途中
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            RaisedButton(
-              child: Text('ログイン'),
-              onPressed: () async {
-                await Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) {
-                    return ChatPage();
-                  }),
-                );
-              },
-            ),
-          ],
+        child: Container(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(labelText: 'メールアドレス'),
+                onChanged: (String value) {
+                  setState(() {
+                    email = value;
+                  });
+                },
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'パスワード'),
+                obscureText: true,
+                onChanged: (String value) {
+                  setState(() {
+                    password = value;
+                  });
+                },
+              ),
+              Container(
+                padding: EdgeInsets.all(8),
+                child: Text(infoText),
+              ),
+              Container(
+                width: double.infinity,
+                child: RaisedButton(
+                  color: Colors.blue,
+                  textColor: Colors.white,
+                  child: Text('ユーザー登録'),
+                  onPressed: () async {
+                    try {
+                      final FirebaseAuth auth = FirebaseAuth.instance;
+                      final AuthResult result = await auth.createUserWithEmailAndPassword(
+                        email: email,
+                        password: password,
+                      );
+                      final FirebaseUser user = result.user;
+                      await Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) {
+                          return ChatPage(user);
+                        }),
+                      );
+                    } catch (e) {
+                      setState(() {
+                        infoText = "登録に失敗しました : ${e.message}";
+                      });
+                    }
+                  },
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                child: OutlineButton(
+                  textColor: Colors.blue,
+                  child: Text('ログイン'),
+                  onPressed: () async {
+                    try {
+                      final FirebaseAuth auth = FirebaseAuth.instance;
+                      final AuthResult result = await auth.signInWithEmailAndPassword(
+                        email: email,
+                        password: password,
+                      );
+                      final FirebaseUser user = result.user;
+                      await Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) {
+                          return ChatPage(user);
+                        }),
+                      );
+                    } catch (e) {
+                      setState(() {
+                        infoText = "ログインに失敗しました : ${e.message}";
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+         ),
         ),
-      ),
     );
   }
 }
 
 class ChatPage extends StatelessWidget {
+  ChatPage(this.user);
+  final FirebaseUser user;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +135,7 @@ class ChatPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.close),
             onPressed: () async {
+              await FirebaseAuth.instance.signOut();
               await Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) {
                   return LoginPage();
@@ -73,6 +144,9 @@ class ChatPage extends StatelessWidget {
             },
           ),
         ],
+      ),
+      body: Center(
+        child: Text('ログイン情報 : ${user.email}'),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
