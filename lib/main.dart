@@ -1,22 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(MyApp());
 }
 
+class UserState extends ChangeNotifier {
+  FirebaseUser user;
+
+  void setUser(FirebaseUser newUser) {
+    user = newUser;
+    notifyListeners();
+  }
+}
+
 class MyApp extends StatelessWidget {
+  final UserState userState = UserState();
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'ChatApp',
-      theme: ThemeData(
-        primaryColor: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+    return ChangeNotifierProvider<UserState>.value(
+      value: userState,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'ChatApp',
+        theme: ThemeData(
+          primaryColor: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: LoginPage(),
       ),
-      home: LoginPage(),
     );
   }
 }
@@ -34,6 +49,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final UserState userState = Provider.of<UserState>(context);
+
     return Scaffold(
       body: Center(
         child: Container(
@@ -76,9 +93,10 @@ class _LoginPageState extends State<LoginPage> {
                         password: password,
                       );
                       final FirebaseUser user = result.user;
+                      userState.setUser(user);
                       await Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) {
-                          return ChatPage(user);
+                          return ChatPage();
                         }),
                       );
                     } catch (e) {
@@ -102,9 +120,10 @@ class _LoginPageState extends State<LoginPage> {
                         password: password,
                       );
                       final FirebaseUser user = result.user;
+                      userState.setUser(user);
                       await Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) {
-                          return ChatPage(user);
+                          return ChatPage();
                         }),
                       );
                     } catch (e) {
@@ -124,11 +143,11 @@ class _LoginPageState extends State<LoginPage> {
 }
 
 class ChatPage extends StatelessWidget {
-  ChatPage(this.user);
-  final FirebaseUser user;
-
   @override
   Widget build(BuildContext context) {
+    final UserState userState = Provider.of<UserState>(context);
+    final FirebaseUser user = userState.user;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('チャット'),
@@ -146,15 +165,59 @@ class ChatPage extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Text('ログイン情報 : ${user.email}'),
+      body: Column(
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.all(8),
+            child: Text('ログイン情報 : ${user.email}'),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: Firestore.instance
+                  .collection('posts')
+                  .orderBy('date')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final List<DocumentSnapshot> documents = snapshot.data.documents;
+                  return ListView(
+                    children: documents.map((document) {
+                      IconButton deleteIcon;
+                      if (document['email'] == user.email) {
+                        deleteIcon = IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () async {
+                            await Firestore.instance
+                                .collection('posts')
+                                .document(document.documentID)
+                                .delete();
+                          },
+                        );
+                      }
+                      return Card(
+                        child: ListTile(
+                          title: Text(document['text']),
+                          subtitle: Text(document['email']),
+                          trailing: deleteIcon,
+                        ),
+                      );
+                    }).toList(),
+                  );
+                }
+                return Center(
+                  child: Text('読み込み中...'),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
           await Navigator.of(context).push(
             MaterialPageRoute(builder: (context) {
-              return AddPostPage(user);
+              return AddPostPage();
             }),
           );
         },
@@ -164,9 +227,6 @@ class ChatPage extends StatelessWidget {
 }
 
 class AddPostPage extends StatefulWidget {
-  AddPostPage(this.user);
-  final FirebaseUser user;
-
   @override
   _AddPostPageState createState() => _AddPostPageState();
 }
@@ -176,6 +236,9 @@ class _AddPostPageState extends State<AddPostPage> {
 
   @override
   Widget build(BuildContext context) {
+    final UserState userState = Provider.of<UserState>(context);
+    final FirebaseUser user = userState.user;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('チャット投稿'),
@@ -204,7 +267,7 @@ class _AddPostPageState extends State<AddPostPage> {
                   child: Text('投稿'),
                   onPressed: () async {
                     final date = DateTime.now().toLocal().toIso8601String();
-                    final email = widget.user.email;
+                    final email = user.email;
                     await Firestore.instance
                         .collection('post')
                         .document()
