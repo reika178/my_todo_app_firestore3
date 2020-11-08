@@ -243,11 +243,22 @@ class TodoPage extends StatelessWidget {
                         );
                       }
 
-                      return Card(
-                        child: ListTile(
-                          title: Text(document['text']),
-                          subtitle: Text(document['email']),
-                          trailing: deleteIcon,
+                      return Dismissible(
+                        key: ObjectKey(snapshot.document(documentID),
+                        onDismissed: (direction) {
+                          setState(() async {
+                            await Firestore.instance
+                                .collection('post')
+                                .document(document.documentID)
+                                .delete();
+                          });
+                        },
+                        child: Card(
+                          child: ListTile(
+                            title: Text(document['text']),
+                            subtitle: Text(document['email']),
+                            trailing: deleteIcon,
+                          ),
                         ),
                       );
                     }).toList(),
