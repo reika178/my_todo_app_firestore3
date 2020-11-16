@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  // 最初に表示するWidget
   runApp(MyApp());
 }
 
@@ -192,7 +191,6 @@ class TodoPage extends StatelessWidget {
             onPressed: () async {
               // ログアウト状態
               // 内部で保持しているセッションが初期化される
-
               await FirebaseAuth.instance.signOut();
               // ログイン画面に遷移+todo画面を破棄
               await Navigator.of(context).pushReplacement(
@@ -206,9 +204,8 @@ class TodoPage extends StatelessWidget {
       ),
       body: Column(
         children: <Widget>[
-          Container(
+          Padding(
             padding: EdgeInsets.all(8),
-            child: Text('user : ${user.email}'),
           ),
           Expanded(
             // StreamBuilder
@@ -242,19 +239,24 @@ class TodoPage extends StatelessWidget {
                           },
                         );
                       }
-
                       return Dismissible(
-                        key: ObjectKey(snapshot.document(documentID),
-                        onDismissed: (direction) {
-                          setState(() async {
+                        key: Key(document.documentID),
+                        onDismissed: (direction) async {
                             await Firestore.instance
                                 .collection('post')
                                 .document(document.documentID)
                                 .delete();
-                          });
                         },
                         child: Card(
                           child: ListTile(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) {
+                                  return AddTodoPage();
+                                }),
+                              );
+                            },
                             title: Text(document['text']),
                             subtitle: Text(document['email']),
                             trailing: deleteIcon,
@@ -279,7 +281,7 @@ class TodoPage extends StatelessWidget {
           // 追加画面に遷移
           await Navigator.of(context).push(
             MaterialPageRoute(builder: (context) {
-              return AddPostPage();
+              return AddTodoPage();
             }),
           );
         },
@@ -289,12 +291,12 @@ class TodoPage extends StatelessWidget {
 }
 
 // 追加用Widget
-class AddPostPage extends StatefulWidget {
+class AddTodoPage extends StatefulWidget {
   @override
-  _AddPostPageState createState() => _AddPostPageState();
+  _AddTodoPageState createState() => _AddTodoPageState();
 }
 
-class _AddPostPageState extends State<AddPostPage> {
+class _AddTodoPageState extends State<AddTodoPage> {
   // 入力した内容
   String messageText = "";
 
