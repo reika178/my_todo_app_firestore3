@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                 // ユーザー登録ボタン
                 width: double.infinity,
                 child: RaisedButton(
-                  color: Colors.purple,
+                  color: Colors.blue,
                   textColor: Colors.white,
                   child: Text('sign up'),
                   onPressed: () async {
@@ -174,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-// チャット画面用Widget
+// Todo画面用Widget
 class TodoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -258,7 +258,7 @@ class TodoPage extends StatelessWidget {
                               );
                             },
                             title: Text(document['text']),
-                            subtitle: Text(document['email']),
+                            subtitle: Text(document['date']),
                             trailing: deleteIcon,
                           ),
                         ),
@@ -292,6 +292,7 @@ class TodoPage extends StatelessWidget {
 
 // 追加用Widget
 class AddTodoPage extends StatefulWidget {
+  
   @override
   _AddTodoPageState createState() => _AddTodoPageState();
 }
@@ -319,6 +320,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
               // todo入力
               TextFormField(
                 decoration: InputDecoration(labelText: 'Todo'),
+                // initialValue: ,
                 // 複数行のテキスト入力
                 keyboardType: TextInputType.multiline,
                 // 最大3行
